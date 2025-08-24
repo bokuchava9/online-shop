@@ -1,0 +1,19 @@
+.header{
+    display: flex;
+    justify-content: space-around;
+}
+.nav{
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+.nav a{
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+}
+.logo img{
+    border-radius: 50%;
+    height: 100px;
+    width: 100px;
+}

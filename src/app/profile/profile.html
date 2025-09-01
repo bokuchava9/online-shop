@@ -1,0 +1,15 @@
+
+<div class="profile-container" *ngIf="user$ | async as user; else loading">
+  <h2>პროფილი</h2>
+  <div class="profile-card">
+    <div class="profile-info">
+      <p><strong>სახელი:</strong> {{ user.firstName }}</p>
+      <p><strong>გვარი:</strong> {{ user.lastName }}</p>
+      <p><strong>ელფოსტა:</strong> {{ user.email }}</p>
+      <p><strong>ტელეფონი:</strong> {{ user.phoneNumber }}</p>
+    </div>
+  </div>
+</div>
+<ng-template #loading>
+  <p>იტვირთება...</p>
+</ng-template>

@@ -3,63 +3,51 @@
 </div>
 
 <div class="filters-panel">
-  <!-- ტექსტიტ ძებნა -->
+  <!-- ფილტრები ნგმოდელით ეკრაზე გამოდის ინფუთში შეტანილი ცვლილებები -->
   <input type="text" placeholder="Search products..." [(ngModel)]="searchText" (input)="filterProducts()">
 
-  <!-- ბრენდები წასშლელია!!!!! -->
-  <select [(ngModel)]="selectedBrand" (change)="filterProducts()">
-    <option value="">All Brands</option>
-    <option *ngFor="let b of brands" [value]="b">{{ b | titlecase }}</option>
-  </select>
-
-  <!-- მინიმუმი და მაქსიმუმი -->
-  <input type="number" placeholder="Min Price" [(ngModel)]="minPrice" (input)="filterProducts()">
-  <input type="number" placeholder="Max Price" [(ngModel)]="maxPrice" (input)="filterProducts()">
-
-  <!--კატეგორიების ფილტრი შესასწორებელია -->
+  
   <select [(ngModel)]="selectedCategory" (change)="filterProducts()">
     <option value="">All Categories</option>
     <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
   </select>
 
-  <!-- გასუფთავება -->
-  <button (click)="clearFilters()">Clear All</button>
-</div>
-<!-- პროდუქტების ჩატვირთვის ერორი -->
-<div *ngIf="filteredProducts.length === 0 && !loading && !error">
-  <p>პროდუქტები ვერ მოიძებნა</p>
+  <select [(ngModel)]="selectedBrand" (change)="filterProducts()">
+    <option value="">All Brands</option>
+    <option *ngFor="let brand of brands" [value]="brand">{{ brand | titlecase }}</option>
+  </select>
+  <input type="number" placeholder="Min Price" [(ngModel)]="minPrice" (input)="filterProducts()">
+  <input type="number" placeholder="Max Price" [(ngModel)]="maxPrice" (input)="filterProducts()">
+
+  <button (click)="clearFilters()">Clear Filters</button>
 </div>
 
 <div class="products-container">
-  <h1>Our Products</h1>
+  <h1>Products</h1>
 
   <div *ngIf="loading" class="loading">Loading products...</div>
   <div *ngIf="error" class="error">{{ error }}</div>
+  <div *ngIf="filteredProducts.length === 0 && !loading && !error" class="no-products">
+    <p>პროდუქტები ვერ მოიძებნა</p>
+  </div>
 
   <div class="products-grid">
     <div *ngFor="let product of filteredProducts" class="product-card">
-      <div class="product-image">
-        <img [src]="product.thumbnail" [alt]="product.title" />
+      <div class="product-image" (click)="goToDetails(product.id)">
+        <img [src]="product.thumbnail || product.images[0]" [alt]="product.title" />
         <span *ngIf="product.price.discountPercentage > 0" class="discount">
           -{{ product.price.discountPercentage }}%
         </span>
       </div>
 
       <div class="product-info">
-        <h3 class="product-title">{{ product.title }}</h3>
-
-        <div class="product-category">
-          <img [src]="product.category.image" [alt]="product.category.name" class="category-icon" />
-          <span>{{ product.category.name }}</span>
-        </div>
-
+        <h3 class="product-title" (click)="goToDetails(product.id)">{{ product.title }}</h3>
         <div class="price-info">
           <span class="current-price">{{ getDiscountedPrice(product.price) }}</span>
           <span *ngIf="product.price.discountPercentage > 0" class="original-price">
             {{ getOriginalPrice(product.price) }}
           </span>
         </div>
-
         <div class="product-details">
           <div class="stock" [class.out-of-stock]="product.stock <= 0">
             {{ product.stock > 0 ? "In Stock" : "Out of Stock" }}
@@ -67,16 +55,18 @@
           <div class="rating" *ngIf="product.rating > 0">
             ⭐ {{ product.rating.toFixed(1) }}
           </div>
-          <button (click)="goToDetails(product._id)">Details</button>
-          <button (click)="addToCart(product)">Add to Cart</button>
+         
+            <button (click)="addToCart(product, $event)" class="add-to-cart-btn">
+        <i class="fas fa-cart-plus"></i> დამატება
+      </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!--გვერდების შეცვლა შესასწორებელია!!! -->
-  <div class="pagination" *ngIf="totalProducts > pageSize">
-  <button [disabled]="currentPage === 1" (click)="onPageChange(currentPage - 1)" class="page-btn">Previous</button>
-  <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
-  <button [disabled]="currentPage >= totalPages" (click)="onPageChange(currentPage + 1)" class="page-btn">Next</button>
+  <div class="pagination" *ngIf="!loading && totalProducts > pageSize">
+    <button [disabled]="currentPage === 1" (click)="onPageChange(currentPage - 1)" class="page-btn">Previous</button>
+    <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+    <button [disabled]="currentPage >= totalPages" (click)="onPageChange(currentPage + 1)" class="page-btn">Next</button>
+  </div>
 </div>

@@ -1,0 +1,68 @@
+  <!-- <div class="login-container">
+  <h2>ავტორიზაცია</h2>
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="phoneNumber">ტელეფონის ნომერი</label>
+      <input
+        type="text"
+        id="phoneNumber"
+        formControlName="phoneNumber"
+        placeholder="შეიყვანეთ ტელეფონის ნომერი"
+      />
+      <div *ngIf="f['phoneNumber'].touched && f['phoneNumber'].errors" class="validation-error">
+        <div *ngIf="f['phoneNumber'].errors['required']">
+          ტელეფონის ნომერი აუცილებელია
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="password">პაროლი</label>
+      <input
+        type="password"
+        id="password"
+        formControlName="password"
+        placeholder="შეიყვანეთ პაროლი"
+      />
+      <div *ngIf="f['password'].touched && f['password'].errors" class="validation-error">
+        <div *ngIf="f['password'].errors['required']">პაროლი აუცილებელია</div>
+      </div>
+    </div>
+    <div class="buttons">
+      <button type="submit" [disabled]="loginForm.invalid || loading">
+        shesvla
+      </button>
+      <a routerLink="/register">არ გაქვთ ანგარიში? დარეგისტრირდით</a>
+    </div>
+  </form>
+</div>  -->
+
+
+<div class="login-container">
+  <h2>ავტორიზაცია</h2>
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="email">ელფოსტა</label>
+      <input
+        type="email"
+        id="email"
+        formControlName="email"
+        placeholder="შეიყვანეთ ნებისმიერი ელფოსტა"
+      />
+    </div>
+    <div class="form-group">
+      <label for="password">პაროლი</label>
+      <input
+        type="password"
+        id="password"
+        formControlName="password"
+        placeholder="შეიყვანეთ ნებისმიერი პაროლი"
+      />
+    </div>
+    <div class="buttons">
+      <button type="submit" [disabled]="loginForm.invalid || loading">
+        შესვლა
+      </button>
+      <a routerLink="/register">რეგისტრაცია</a>
+    </div>
+  </form>
+</div>

@@ -1,9 +1,24 @@
-<div class="header"><div class="logo">
+<div class="header">
+  <div class="logo">
     <a routerLink="/"  routerLinkActive="active"><img src="assets/digital-store-logo-electronics-products-logo-e-commerce-logo_372882-55.avif" alt="Shop Logo"></a></div>
-<div class="nav">
-     <a routerLink="/"  routerLinkActive="active">Home</a>
-    <a routerLink="/cart"  routerLinkActive="active">cart</a>
+  <div class="nav">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+    <a routerLink="/cart" routerLinkActive="active">Cart</a>
+
     
+    <ng-container *ngIf="!isLoggedIn">
+      <a routerLink="/register" routerLinkActive="active">Register</a>
+      <a routerLink="/sign-in" routerLinkActive="active">Sign In</a>
+    </ng-container>
+
+    <!-- ეს მაშინ გამოცნდება როცა მომხმარებელი ავტორიზებული იქნება პროფილის გვერდზე გადასვლა დასამატებელია-->
+    <ng-container *ngIf="isLoggedIn">
+      
+      <a routerLink="/profile" class="nav-link profile-link">Welcome, {{ user?.firstName }}</a>
+      <a (click)="logout()" class="logout-btn">Sign Out</a>
+    </ng-container>
+  </div>
 </div>
 
-</div>
+
+

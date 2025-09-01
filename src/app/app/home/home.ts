@@ -1,25 +1,25 @@
-import { Component, OnInit } from '@angular/core';
-import { User } from '../../services/user';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { CartService } from '../../services/cart';
+import { Router, RouterLink } from '@angular/router';
+import { CartService } from '../../services/cart.service'; 
 import Swal from 'sweetalert2';
 import { FormsModule } from '@angular/forms';
+import { User as ProductService, Product, Category } from '../../services/user';
 
 @Component({
   standalone: true,
   selector: 'app-home',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './home.html',
-  styleUrls: ['./home.css']
+  styleUrls: ['./home.css'],
 })
-export class Home implements OnInit {
-  products: any[] = [];
-  filteredProducts: any[] = [];
-  categories: any[] = [];
+export class HomeComponent implements OnInit {
+  products: Product[] = [];
+  filteredProducts: Product[] = [];
+  categories: Category[] = [];
   brands: string[] = [
-    "asus","samsung","xiaomi","apple","honor","oneplus",
-    "lenovo","hp","acer","dell","msi","lg"
+    'asus', 'samsung', 'xiaomi', 'apple', 'honor', 'oneplus',
+    'lenovo', 'hp', 'acer', 'dell', 'msi', 'lg',
   ];
 
   loading: boolean = false;
@@ -35,13 +35,13 @@ export class Home implements OnInit {
 
   currentPage: number = 1;
   pageSize: number = 10;
-  total: number = 0;
- totalProducts: number = 0;
-  constructor(
-    private userService: User,
-    private router: Router,
-    private cartService: CartService
-  ) {}
+  totalProducts: number = 0;
+
+  private productService = inject(ProductService);
+  private cartService = inject(CartService);
+  private router = inject(Router);
+
+  constructor() {}
 
   ngOnInit() {
     this.fetchProducts();
@@ -50,35 +50,36 @@ export class Home implements OnInit {
 
   fetchProducts() {
     this.loading = true;
-    this.userService.getProducts(this.currentPage, this.pageSize).subscribe(
-      (data: any) => {
-        this.products = data.products || [];
+    this.productService.getProducts(this.currentPage, this.pageSize).subscribe({
+      next: (data) => {
+        this.products = data.products.map(p => ({ ...p, id: p._id }));
         this.filteredProducts = [...this.products];
         this.loading = false;
         this.totalProducts = data.total;
       },
-      (err: any) => {
+      error: (err) => {
         this.error = 'Error fetching products';
         this.loading = false;
         console.error('Error fetching products:', err);
-      }
-    );
+      },
+    });
   }
-   get totalPages(): number {
+
+  get totalPages(): number {
     return Math.ceil(this.totalProducts / this.pageSize);
   }
 
   fetchCategories() {
-    this.userService.getCategories().subscribe(
-      (data: any) => {
+    this.productService.getCategories().subscribe({
+      next: (data) => {
         this.categories = data || [];
       },
-      (err: any) => console.error('Error fetching categories:', err)
-    );
+      error: (err) => console.error('Error fetching categories:', err),
+    });
   }
-//  პროდუქტების ფილტრი შესასწორებელია!!!!!
+
   filterProducts() {
-    this.filteredProducts = this.products.filter(product => {
+    this.filteredProducts = this.products.filter((product) => {
       const matchSearch = this.searchText
         ? product.title.toLowerCase().includes(this.searchText.toLowerCase())
         : true;
@@ -88,70 +89,86 @@ export class Home implements OnInit {
       const matchBrand = this.selectedBrand
         ? product.brand?.toLowerCase() === this.selectedBrand.toLowerCase()
         : true;
-      const matchMinPrice = this.minPrice !== null
-        ? product.price.current >= this.minPrice
-        : true;
-      const matchMaxPrice = this.maxPrice !== null
-        ? product.price.current <= this.maxPrice
-        : true;
-      const matchRating = this.minRating !== null
-        ? product.rating >= this.minRating
-        : true;
+      const matchMinPrice =
+        this.minPrice !== null ? product.price.current >= this.minPrice : true;
+      const matchMaxPrice =
+        this.maxPrice !== null ? product.price.current <= this.maxPrice : true;
+      const matchRating =
+        this.minRating !== null ? product.rating >= this.minRating : true;
 
-      return matchSearch && matchCategory && matchBrand && matchMinPrice && matchMaxPrice && matchRating;
+      return (
+        matchSearch &&
+        matchCategory &&
+        matchBrand &&
+        matchMinPrice &&
+        matchMaxPrice &&
+        matchRating
+      );
     });
   }
 
   goToDetails(id: string) {
     this.router.navigate(['/details', id]);
   }
-// გვერდების შეცვლა შესასწორებელია!!!
+
   onPageChange(page: number) {
     this.currentPage = page;
     this.fetchProducts();
   }
 
   getDiscountedPrice(price: any): string {
-    return price && price.current ? `${price.current} ${price.currency || ''}` : '';
+    return price && price.current
+      ? `${price.current} ${price.currency || ''}`
+      : '';
   }
 
   getOriginalPrice(price: any): string {
-    return price && price.beforeDiscount ? `${price.beforeDiscount} ${price.currency || ''}` : '';
+    return price && price.beforeDiscount
+      ? `${price.beforeDiscount} ${price.currency || ''}`
+      : '';
   }
-// კალათაში დამატება იუზერის დამატებას შესასწორებელია!!!
-  addToCart(product: any) {
-    this.cartService.addToCart(product).subscribe({
-      next: () => {
-        Swal.fire({
-          title: "წარმატება!",
-          text: "პროდუქტი დაემატა კალათაში.",
-          icon: "success",
-          timer: 1500,
-          showConfirmButton: false
-        });
-      },
-      error: (err) => {
-        Swal.fire({
-          title: "შეცდომა!",
-          text: "პროდუქტის დასამატებლად გთხოვთ გაიაროთ ავტორიზაცია!!!",
-          icon: "error"
-        });
-        console.error(err);
-      }
+
+  // addToCart(productId: string, event: Event) {
+  //   event.stopPropagation();
+  //   this.cartService.addToCart(productId).subscribe({
+  //     next: () => {
+  //       Swal.fire({
+  //         title: 'წარმატება!',
+  //         text: 'პროდუქტი დაემატა კალათაში.',
+  //         icon: 'success',
+  //         timer: 1500,
+  //         showConfirmButton: false,
+  //       });
+  //     },
+  //     error: (err) => {
+  //       Swal.fire({
+  //         title: 'შეცდომა!',
+  //         text: 'პროდუქტის დასამატებლად გთხოვთ გაიაროთ ავტორიზაცია.',
+  //         icon: 'error',
+  //       });
+  //       console.error('Add to cart error:', err);
+  //     },
+  //   });
+  // }
+addToCart(product: Product, event: Event) { 
+    event.stopPropagation();
+    this.cartService.addToCart(product); 
+    Swal.fire({
+      title: 'წარმატება!',
+      text: 'პროდუქტი დაემატა კალათაში.',
+      icon: 'success',
+      timer: 1500,
+      showConfirmButton: false
     });
-  };
-
-
-  // 
-
+  }
   clearFilters() {
-  this.searchText = '';
-  this.selectedBrand = '';
-  this.minPrice = null;
-  this.maxPrice = null;
-  this.selectedCategory = '';
-  this.filterProducts();
-}
+    this.searchText = '';
+    this.selectedBrand = '';
+    this.minPrice = null;
+    this.maxPrice = null;
+    this.selectedCategory = '';
+    this.filterProducts();
+  }
 }
 
 

@@ -2,21 +2,22 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-interface Price {
+export interface Price {
   current: number;
   currency: string;
   beforeDiscount: number;
   discountPercentage: number;
 }
 
-interface Category {
+export interface Category {
   id: string;
   name: string;
   image: string;
 }
 
-interface Product {
+export interface Product {
   _id: string;
+  id: string; 
   title: string;
   description: string;
   price: Price;
@@ -30,7 +31,7 @@ interface Product {
   images: string[];
 }
 
-interface ProductResponse {
+export interface ProductResponse {
   total: number;
   limit: number;
   page: number;
@@ -40,33 +41,30 @@ interface ProductResponse {
 
 @Injectable({ providedIn: 'root' })
 export class User {
+  private apiUrl = 'https://api.everrest.educata.dev/shop';
+
   constructor(private http: HttpClient) {}
 
   getProducts(page: number = 1, pageSize: number = 10): Observable<ProductResponse> {
     return this.http.get<ProductResponse>(
-      `https://api.everrest.educata.dev/shop/products/all?page_index=${page}&page_size=${pageSize}`
+      `${this.apiUrl}/products/all?page_index=${page}&page_size=${pageSize}`
     );
   }
 
   getCategories(): Observable<Category[]> {
     return this.http.get<Category[]>(
-      `https://api.everrest.educata.dev/shop/products/categories`
+      `${this.apiUrl}/products/categories`
     );
   };
 
-  goToDetails(id:string):Observable<Product>{
+  getProductById(id:string):Observable<Product>{
     return this.http.get<Product>(
-      "https://api.everrest.educata.dev/shop/products/details?id=" + id
+      `${this.apiUrl}/products/product/${id}`
     )
-
   };
  
-
-
-// პროდუქტების შეფასება შესასწორებელია!!!!!
   addRating(productId: string, rate: number): Observable<any> {
-    const url = 'https://api.everrest.educata.dev/shop/reviews/add';
+    const url = `${this.apiUrl}/reviews/add`;
     return this.http.post(url, { productId, rate });
   }
-  
 }

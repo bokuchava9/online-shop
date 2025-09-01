@@ -1,0 +1,92 @@
+<!-- <div class="register-container">
+  <h2>რეგისტრაცია</h2>
+
+  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="firstName">სახელი</label>
+      <input type="text" id="firstName" formControlName="firstName" />
+    </div>
+    <div class="form-group">
+      <label for="lastName">გვარი</label>
+      <input type="text" id="lastName" formControlName="lastName" />
+    </div>
+    <div class="form-group">
+      <label for="age">ასაკი</label>
+      <input type="number" id="age" formControlName="age" />
+    </div>
+    <div class="form-group">
+      <label for="email">ელფოსტა</label>
+      <input type="email" id="email" formControlName="email" />
+    </div>
+    <div class="form-group">
+      <label for="password">პაროლი</label>
+      <input type="password" id="password" formControlName="password" />
+    </div>
+    <div class="form-group">
+      <label for="address">მისამართი</label>
+      <input type="text" id="address" formControlName="address" />
+    </div>
+    <div class="form-group">
+      <label for="phone">ტელეფონი</label>
+      <input type="text" id="phone" formControlName="phone" />
+    </div>
+    <div class="form-group">
+      <label for="zipcode">საფოსტო კოდი</label>
+      <input type="text" id="zipcode" formControlName="zipcode" />
+    </div>
+    <div class="form-group">
+      <label for="gender">სქესი</label>
+      <select id="gender" formControlName="gender">
+        <option value="MALE">მამრობითი</option>
+        <option value="FEMALE">მდედრობითი</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="avatar">ავატარის ბმული</label>
+      <input type="text" id="avatar" formControlName="avatar" />
+    </div>
+    <div class="buttons">
+      <button type="submit" [disabled]="registerForm.invalid || loading">
+        <span *ngIf="!loading">რეგისტრაცია</span>
+        <span *ngIf="loading">იტვირთება...</span>
+      </button>
+      <a routerLink="/sign-in">უკვე გაქვთ ანგარიში?</a>
+    </div>
+  </form>
+</div> -->
+
+
+
+<div class="register-container">
+  <h2>რეგისტრაცია (RentCar API)</h2>
+
+  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="firstName">სახელი</label>
+      <input type="text" id="firstName" formControlName="firstName" />
+    </div>
+    <div class="form-group">
+      <label for="lastName">გვარი</label>
+      <input type="text" id="lastName" formControlName="lastName" />
+    </div>
+    <div class="form-group">
+      <label for="email">ელფოსტა</label>
+      <input type="email" id="email" formControlName="email" />
+    </div>
+    <div class="form-group">
+      <label for="phoneNumber">ტელეფონის ნომერი</label>
+      <input type="text" id="phoneNumber" formControlName="phoneNumber" />
+    </div>
+    <div class="form-group">
+      <label for="password">პაროლი</label>
+      <input type="password" id="password" formControlName="password" />
+    </div>
+    <div class="buttons">
+      <button type="submit" [disabled]="registerForm.invalid || loading">
+        <span *ngIf="!loading">რეგისტრაცია</span>
+        <span *ngIf="loading">იტვირთება...</span>
+      </button>
+      <a routerLink="/sign-in">უკვე გაქვთ ანგარიში?</a>
+    </div>
+  </form>
+</div>

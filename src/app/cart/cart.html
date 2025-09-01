@@ -1,27 +1,47 @@
+<h2>ჩემი კალათა</h2>
 
-<h2>ჩემი კალათი</h2>
 
-<!-- pipe  ავტომატური საბსქრაიბისთვის -->
-<ng-container *ngIf="items$ | async as items">
-  <div *ngIf="items.length === 0; else cartContent">
-    კალათი ცარიელია.
+<ng-container *ngIf="items$ | async as items; else loading">
+
+  
+  <div *ngIf="items.length === 0" class="empty-cart">
+    <h2>თქვენი კალათა ცარიელია</h2>
+    <a routerLink="/" class="productbtn">ყველა პროდუქტის ნახვა</a>
   </div>
 
-  <ng-template #cartContent>
-    <ul>
-      <!-- მთლიანად შესაცვლელია -->
-      <li *ngFor="let item of items">
-        <button (click)="decrease(item)">-</button>
-        {{item.quantity}} x
-        <button (click)="increase(item)">+</button>
-        <img [src]="item.product.thumbnail" alt="{{ item.product.title }}" width="50" height="50">
-        {{ item.product.title }} - {{ item.product.price.current }} {{ item.product.price.currency }}
-        <b>ჯამი: {{ item.quantity * item.product.price.current | number:'1.2-2' }} {{ item.product.price.currency }}</b>
-        <button (click)="remove(item)" style="color:red; margin-left: 10px;">წაშლა</button>
-      </li>
-    </ul>
-    <div>
-      
+  <div *ngIf="items.length > 0" class="cart-container">
+    <div class="cart-items">
+
+
+      <div *ngFor="let item of items" class="cart-item">
+        <img [src]="item.product.thumbnail" alt="{{ item.product.title }}" class="item-image">
+        <div class="item-details">
+          <h3 class="item-title">{{ item.product.title }}</h3>
+          <p class="item-price">{{ item.product.price.current | currency:'GEL' }}</p>
+        </div>
+        <div class="item-quantity">
+          <button (click)="decrease(item)" class="quantity-btn">-</button>
+          <span>{{ item.quantity }}</span>
+          <button (click)="increase(item)" class="quantity-btn">+</button>
+        </div>
+        <div class="item-total">
+          {{ (item.quantity * item.product.price.current) | currency:'$' }}
+        </div>
+        <button (click)="remove(item)" class="remove-btn">&times;</button>
+      </div>
     </div>
-  </ng-template>
+
+    <div class="cart-summary">
+      <div class="total-price">
+        <h3>სრული ღირებულება:</h3>
+        <h2>{{ totalPrice$ | async | currency:'$':'symbol':'1.2-2' }}</h2>
+      </div>
+    </div>
+  </div>
+
 </ng-container>
+
+
+<ng-template #loading>
+  <p>კალათა იტვირთება...</p>
+</ng-template>

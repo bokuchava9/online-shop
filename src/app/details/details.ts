@@ -41,7 +41,7 @@ export class Details implements OnInit {
   hoveredRating = 0;
 
   constructor(private route: ActivatedRoute, private userService: User) {}
-
+// კონკრეტულ პროდუქტზე მოდის ინფორმაცია იდ ის დახმარებით 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -72,4 +72,7 @@ export class Details implements OnInit {
   resetHover() {
     this.hoveredRating = 0;
   }
+
+  
 }
+

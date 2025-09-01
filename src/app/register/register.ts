@@ -120,7 +120,7 @@ export class RegisterComponent implements OnInit {
         this.loading = false;
         const errorMessage = Array.isArray(err.error)
           ? err.error.map((e: { description: string }) => e.description).join('\n')
-          : (err.error?.message || 'რეგისტრაცია ვერ მოხერხდა.');
+          : (err.error?.message || 'ელფოსტა ან ტელეფონის ნომერი უკვე გამოყენებულია.');
         Swal.fire('შეცდომა!', errorMessage, 'error');
       },
     });

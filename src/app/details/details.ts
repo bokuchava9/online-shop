@@ -1,29 +1,123 @@
-import { Component, OnInit } from '@angular/core';
+// import { Component, OnInit, inject } from '@angular/core';
+// import { ActivatedRoute } from '@angular/router';
+// import { CommonModule } from '@angular/common';
+// import Swal from 'sweetalert2';
+
+// import { User as ProductService, Product } from '../services/user';
+// import { CartService } from '../services/cart.service';
+
+// @Component({
+//   selector: 'app-details',
+//   standalone: true,
+//   imports: [CommonModule],
+//   templateUrl: './details.html',
+//   styleUrls: ['./details.css']
+// })
+// export class Details implements OnInit {
+//   product: Product | null = null;
+//   loading: boolean = true;
+
+//   stars = [1, 2, 3, 4, 5];
+//   selectedRating = 0;
+//   hoveredRating = 0;
+
+//   private route = inject(ActivatedRoute);
+//   private productService = inject(ProductService);
+//   private cartService = inject(CartService);
+
+//   constructor() {}
+
+//   ngOnInit() {
+//     const id = this.route.snapshot.paramMap.get('id');
+//     if (id) {
+//       this.productService.getProductById(id).subscribe({
+//         next: data => {
+//           this.product = data;
+//           this.loading = false;
+//         },
+//         error: err => {
+//           console.error('Failed to load product', err);
+//           this.loading = false;
+//         }
+//       });
+//     }
+//   }
+
+//   addToCart(product: Product) {
+//     if (product.stock <= 0) {
+//       Swal.fire({
+//         title: 'მარაგში არ არის',
+//         text: 'სამწუხაროდ, ეს პროდუქტი გაყიდულია.',
+//         icon: 'warning',
+//       });
+//       return;
+//     }
+
+//     // --- ვიყენებთ ახალ, გაერთიანებულ მეთოდს ---
+//     this.cartService.upsertProduct(product._id, 1).subscribe({
+//       next: () => {
+//         Swal.fire({
+//           title: 'წარმატება!',
+//           text: `"${product.title}" დაემატა კალათაში.`,
+//           icon: 'success',
+//           timer: 1500,
+//           showConfirmButton: false,
+//         });
+//       },
+//       error: (err) => {
+//         if (err.status === 400) {
+//           Swal.fire({
+//             title: 'შეცდომა',
+//             text: 'მოთხოვნა ვერ დამუშავდა. შესაძლოა პროდუქტი მარაგში აღარ არის.',
+//             icon: 'warning',
+//           });
+//         } else {
+//           Swal.fire({
+//             title: 'ავტორიზაცია საჭირო',
+//             text: 'პროდუქტის დასამატებლად გთხოვთ გაიაროთ ავტორიზაცია.',
+//             icon: 'error',
+//           });
+//         }
+//       },
+//     });
+//   }
+
+//   rateProduct(rating: number) {
+//     this.selectedRating = rating;
+//     if (this.product) {
+//       this.productService.addRating(this.product._id, rating).subscribe({
+//         next: () => {
+//           Swal.fire('გმადლობთ!', 'თქვენი შეფასება მიღებულია.', 'success');
+//           if (this.product) {
+//             // ეს მიახლოებითი განახლებაა, იდეალურ შემთხვევაში სერვერიდან უნდა მოდიოდეს განახლებული ობიექტი
+//             this.product.rating = (this.product.rating + rating) / 2; 
+//           }
+//         },
+//         error: (err) => {
+//           Swal.fire('შეცდომა', 'შეფასების დასაფიქსირებლად გთხოვთ გაიაროთ ავტორიზაცია.', 'error');
+//         }
+//       });
+//     }
+//   }
+
+//   hoverRating(rating: number) {
+//     this.hoveredRating = rating;
+//   }
+
+//   resetHover() {
+//     this.hoveredRating = 0;
+//   }
+// }
+
+
+
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { User } from '../services/user';
+import Swal from 'sweetalert2';
 
-interface Price {
-  current: number;
-  currency: string;
-}
-
-interface Category {
-  id: string;
-  name: string;
-}
-
-interface Product {
-  _id: string;
-  title: string;
-  description: string;
-  price: Price;
-  category: Category;
-  thumbnail: string;
-  stock: number;
-  rating: number;
-}
+import { User as ProductService, Product } from '../services/user';
+import { CartService } from '../services/cart.service';
 
 @Component({
   selector: 'app-details',
@@ -32,38 +126,90 @@ interface Product {
   templateUrl: './details.html',
   styleUrls: ['./details.css']
 })
-export class Details implements OnInit {
+export class Details implements OnInit { 
   product: Product | null = null;
+  loading: boolean = true;
 
-  // ვარსკვლავების რეიტინგისთვის
   stars = [1, 2, 3, 4, 5];
   selectedRating = 0;
   hoveredRating = 0;
 
-  constructor(private route: ActivatedRoute, private userService: User) {}
-// კონკრეტულ პროდუქტზე მოდის ინფორმაცია იდ ის დახმარებით 
+  private route = inject(ActivatedRoute);
+  private productService = inject(ProductService);
+  private cartService = inject(CartService);
+
+  constructor() {}
+
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.userService.getProducts().subscribe({
+      this.productService.getProductById(id).subscribe({
         next: data => {
-          this.product = data.products.find((p: any) => p._id === id) || null;
+          this.product = data;
+          this.loading = false;
         },
-        error: err => console.error('Failed to load products', err)
+        error: err => {
+          console.error('Failed to load product', err);
+          this.loading = false;
+        }
       });
     }
   }
 
-  rateProduct(rating: number) {
-  this.selectedRating = rating;
+  addToCart(product: Product) {
+    if (product.stock <= 0) {
+      Swal.fire({
+        title: 'მარაგში არ არის',
+        text: 'სამწუხაროდ, ეს პროდუქტი გაყიდულია.',
+        icon: 'warning',
+      });
+      return;
+    }
 
-  if (this.product) {
-    this.userService.addRating(this.product._id, rating).subscribe({
-      next: () => console.log('✔ შეფასება გაიგზავნა'),
-      error: (err) => console.error('❌ შეცდომა:', err)
+    this.cartService.addProduct(product._id, 1).subscribe({
+      next: () => {
+        Swal.fire({
+          title: 'წარმატება!',
+          text: `"${product.title}" დაემატა კალათაში.`,
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      },
+      error: (err) => {
+        if (err.status === 400) {
+          Swal.fire({
+            title: 'შეცდომა',
+            text: 'მოთხოვნა ვერ დამუშავდა. შესაძლოა პროდუქტი მარაგში აღარ არის.',
+            icon: 'warning',
+          });
+        } else {
+          Swal.fire({
+            title: 'ავტორიზაცია საჭირო',
+            text: 'პროდუქტის დასამატებლად გთხოვთ გაიაროთ ავტორიზაცია.',
+            icon: 'error',
+          });
+        }
+      },
     });
   }
-}
+
+  rateProduct(rating: number) {
+        this.selectedRating = rating;
+    if (this.product) {
+      this.productService.addRating(this.product._id, rating).subscribe({
+        next: () => {
+          Swal.fire('გმადლობთ!', 'თქვენი შეფასება მიღებულია.', 'success');
+          if (this.product) {
+            this.product.rating = (this.product.rating + rating) / 2; 
+          }
+      },
+        error: (err) => {
+          Swal.fire('შეცდომა', 'შეფასების დასაფიქსირებლად გთხოვთ გაიაროთ ავტორიზაცია.', 'error');
+        }
+    });
+  }
+  }
 
   hoverRating(rating: number) {
     this.hoveredRating = rating;
@@ -72,7 +218,4 @@ export class Details implements OnInit {
   resetHover() {
     this.hoveredRating = 0;
   }
-
-  
 }
-

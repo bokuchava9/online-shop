@@ -1,156 +1,248 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, tap } from 'rxjs';
 import { Router } from '@angular/router';
 
 export interface User {
-  id?: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phoneNumber: string;
-  token?: string;
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  avatar?: string;
+  gender?: string;
+  age?: number;
+  address?: string;
+  phone?: string;
+  zipcode?: string;
 }
 
-export interface UserDTO {
-  phoneNumber: string;
-  password?: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
+interface LoginResponse {
+  access_token: string;
+  refresh_token: string;
 }
 
 @Injectable({
   providedIn: 'root',
 })
-export class AuthService implements OnDestroy {
-  private apiUrl = 'https://rentcar.stepprojects.ge/api/Users';
-  private currentUserSubject: BehaviorSubject<User | null>;
-  public currentUser: Observable<User | null>;
+export class AuthService {
+  private apiUrl = 'https://api.everrest.educata.dev/auth';
+  
+  private userSubject = new BehaviorSubject<User | null>(this.getUserFromStorage());
+  public user$ = this.userSubject.asObservable();
 
-  constructor(private http: HttpClient, private router: Router) {
-    const userJson = localStorage.getItem('currentUser');
-    this.currentUserSubject = new BehaviorSubject<User | null>(
-      userJson ? JSON.parse(userJson) : null
-    );
-    this.currentUser = this.currentUserSubject.asObservable();
+  private logoutSubject = new Subject<void>();
+  public logout$ = this.logoutSubject.asObservable();
+
+  private http = inject(HttpClient);
+  private router = inject(Router);
+
+  register(userData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/sign_up`, userData);
   }
 
-  public get currentUserValue(): User | null {
-    return this.currentUserSubject.value;
-  }
-
-  login(userDto: Pick<UserDTO, 'phoneNumber' | 'password'>): Observable<any> {
-    
-    return this.http.post<any>(`${this.apiUrl}/login`, userDto).pipe(
-      tap((response: { token: string; [key: string]: any }) => {
+  login(credentials: { email: string; password?: string }): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/sign_in`, credentials).pipe(
+      tap((response) => {
+        if (!response || !response.access_token) {
+          console.error('[AuthService] შეცდომა: access_token არ მოიძებნა პასუხში!');
+          return;
+        }
         
-        const user: User = {
-          ...response, 
-          phoneNumber: userDto.phoneNumber, 
-          token: response.token, 
-        };
-
+        const userPayload = this.decodeToken(response.access_token);
         
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        this.currentUserSubject.next(user);
+        if (userPayload) {
+          const user: User = {
+            _id: userPayload.sub,
+            email: userPayload.email,
+            firstName: userPayload.firstName,
+            lastName: userPayload.lastName,
+            role: userPayload.role,
+            avatar: userPayload.avatar,
+            gender: userPayload.gender,
+            phone: userPayload.phone,
+            address: userPayload.address,
+            age: userPayload.age,
+            zipcode: userPayload.zipcode
+          };
+          
+          this.setSession(user, response.access_token, response.refresh_token);
+        } else {
+          console.error('[AuthService] კრიტიკული შეცდომა: ტოკენის გაშიფვრა ვერ მოხერხდა!');
+        }
       })
     );
   }
 
-  register(userDto: UserDTO): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, userDto);
-  }
-
   logout(): void {
-    localStorage.removeItem('currentUser');
-    this.currentUserSubject.next(null);
-    this.router.navigate(['/sign-in']);
+    this.clearSession();
+    this.http.post(`${this.apiUrl}/sign_out`, {}).subscribe();
   }
 
-  ngOnDestroy(): void {
-    this.currentUserSubject.complete();
+  private setSession(user: User, accessToken: string, refreshToken: string): void {
+    localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('refresh_token', refreshToken);
+    this.userSubject.next(user);
+  }
+
+  private clearSession(): void {
+    localStorage.removeItem('user');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    this.userSubject.next(null);
+    this.logoutSubject.next(); 
+    this.router.navigate(['/']);
+  }
+
+  private getUserFromStorage(): User | null {
+    const userJson = localStorage.getItem('user');
+    if (!userJson || userJson === 'undefined') return null;
+    try {
+      return JSON.parse(userJson);
+    } catch (e) { return null; }
+  }
+
+  private decodeToken(token: string): any {
+    try {
+      let payload = token.split('.')[1];
+      if (!payload) return null;
+
+      payload = payload.replace(/-/g, '+').replace(/_/g, '/');
+      
+      const pad = payload.length % 4;
+      if (pad) {
+        if (pad === 1) throw new Error('Invalid base64 payload');
+        payload += new Array(5 - pad).join('=');
+      }
+
+      const decoded = atob(payload);
+      return JSON.parse(decoded);
+    } catch (e) { 
+      console.error('[AuthService] decodeToken კრიტიკული შეცდომა:', e);
+      return null; 
+    }
+  }
+
+  public get isLoggedIn(): boolean {
+    return !!localStorage.getItem('access_token');
+  }
+
+  public get token(): string | null {
+    return localStorage.getItem('access_token');
   }
 }
 
-
-
-// import { Injectable } from '@angular/core';
-// import { BehaviorSubject, Observable, of } from 'rxjs';
+// import { Injectable, inject } from '@angular/core';
+// import { HttpClient } from '@angular/common/http';
+// import { BehaviorSubject, Observable, Subject, tap } from 'rxjs';
 // import { Router } from '@angular/router';
 
 // export interface User {
-//   email: string;
-//   token: string;
-//   firstName?: string;
-//   lastName?: string;
-//   phoneNumber?: string;
-// }
-
-// export interface UserDTO {
+//   _id: string;
 //   firstName: string;
 //   lastName: string;
 //   email: string;
-//   phoneNumber: string;
-//   password?: string;
+//   role: string;
+//   avatar?: string;
+//   gender?: string;
+//   age?: number;
+//   address?: string;
+//   phone?: string;
+//   zipcode?: string;
+// }
+
+// interface LoginResponse {
+//   access_token: string;
+//   refresh_token: string;
 // }
 
 // @Injectable({
 //   providedIn: 'root',
 // })
 // export class AuthService {
-//   private currentUserSubject: BehaviorSubject<User | null>;
-//   public currentUser: Observable<User | null>;
+//   private apiUrl = 'https://api.everrest.educata.dev/auth';
+  
+//   private userSubject = new BehaviorSubject<User | null>(this.getUserFromStorage());
+//   public user$ = this.userSubject.asObservable();
 
-//   constructor(private router: Router) {
-//     const userJson = localStorage.getItem('currentUser');
-//     this.currentUserSubject = new BehaviorSubject<User | null>(
-//       userJson ? JSON.parse(userJson) : null
+//   private logoutSubject = new Subject<void>();
+//   public logout$ = this.logoutSubject.asObservable();
+
+//   private http = inject(HttpClient);
+//   private router = inject(Router);
+
+//   register(userData: any): Observable<any> {
+//     return this.http.post(`${this.apiUrl}/sign_up`, userData);
+//   }
+
+//   // --- მთავარი შესწორება: ვაბრუნებთ tap ოპერატორს ტოკენის შესანახად ---
+//   login(credentials: { email: string; password?: string }): Observable<LoginResponse> {
+//     return this.http.post<LoginResponse>(`${this.apiUrl}/sign_in`, credentials).pipe(
+//       tap((response) => {
+//         const userPayload = this.decodeToken(response.access_token);
+//         if (userPayload) {
+//           const user: User = {
+//             _id: userPayload.sub,
+//             email: userPayload.email,
+//             firstName: userPayload.firstName,
+//             lastName: userPayload.lastName,
+//             role: userPayload.role,
+//             avatar: userPayload.avatar,
+//             gender: userPayload.gender,
+//             phone: userPayload.phone,
+//             address: userPayload.address,
+//             age: userPayload.age,
+//             zipcode: userPayload.zipcode
+//           };
+//           this.setSession(user, response.access_token, response.refresh_token);
+//         }
+//       })
 //     );
-//     this.currentUser = this.currentUserSubject.asObservable();
-//   }
-
-//   public get currentUserValue(): User | null {
-//     return this.currentUserSubject.value;
-//   }
-
-//   register(userDto: UserDTO): Observable<any> {
-//     localStorage.setItem('lastRegisteredUser', JSON.stringify(userDto));
-//     return of({ success: true });
-//   }
-
-//   login(userDto: { email: string; password?: string }): Observable<any> {
-//     const savedUserJson = localStorage.getItem('lastRegisteredUser');
-//     let firstName = 'user'; 
-//     let lastName = '';
-//     let phoneNumber = '';
-
-//     if (savedUserJson) {
-//       const savedUser = JSON.parse(savedUserJson);
-//       if (savedUser.email === userDto.email) {
-//         firstName = savedUser.firstName;
-//         lastName = savedUser.lastName;
-//         phoneNumber = savedUser.phoneNumber;
-//       }
-//     }
-
-//     const realUser: User = {
-//       email: userDto.email,
-//       token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDUwMDFhYmY0YjA2Y2YxYjM4M2U3NSIsImZpcnN0TmFtZSI6Ikp1c3QiLCJsYXN0TmFtZSI6IlRlc3QiLCJlbWFpbCI6Imp1c3RAdGVzdC5jb20iLCJpYXQiOjE3MjUyMTAyNjYsImV4cCI6MTc1NjczNjY2Nn0.2Q4Y_3-Vb-g_a-h_J-k_L-m_N-o_P-q_R-s_T-u_V-w',
-//       firstName: firstName,
-//       lastName: lastName,
-//       phoneNumber: phoneNumber,
-//     };
-//     localStorage.setItem('currentUser', JSON.stringify(realUser));
-//     this.currentUserSubject.next(realUser);
-//     return of(realUser);
 //   }
 
 //   logout(): void {
-//     localStorage.removeItem('currentUser');
-//     localStorage.removeItem('lastRegisteredUser'); 
-//     this.currentUserSubject.next(null);
-//     this.router.navigate(['/sign-in']);
+//     this.clearSession();
+//     this.http.post(`${this.apiUrl}/sign_out`, {}).subscribe();
+//   }
+
+//   private setSession(user: User, accessToken: string, refreshToken: string): void {
+//     localStorage.setItem('user', JSON.stringify(user));
+//     localStorage.setItem('access_token', accessToken);
+//     localStorage.setItem('refresh_token', refreshToken);
+//     this.userSubject.next(user);
+//   }
+
+//   private clearSession(): void {
+//     localStorage.removeItem('user');
+//     localStorage.removeItem('access_token');
+//     localStorage.removeItem('refresh_token');
+//     this.userSubject.next(null);
+//     this.logoutSubject.next(); 
+//     this.router.navigate(['/']);
+//   }
+
+//   private getUserFromStorage(): User | null {
+//     const userJson = localStorage.getItem('user');
+//     if (!userJson || userJson === 'undefined') return null;
+//     try {
+//       return JSON.parse(userJson);
+//     } catch (e) { return null; }
+//   }
+
+//   private decodeToken(token: string): any {
+//     try {
+//       const payload = token.split('.')[1];
+//       if (!payload) return null;
+//       return JSON.parse(atob(payload));
+//     } catch (e) { return null; }
+//   }
+
+//   public get isLoggedIn(): boolean {
+//     return !!localStorage.getItem('access_token');
+//   }
+
+//   public get token(): string | null {
+//     return localStorage.getItem('access_token');
 //   }
 // }
-

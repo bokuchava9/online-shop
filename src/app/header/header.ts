@@ -1,40 +1,63 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+// import { Component } from '@angular/core';
+// import { CommonModule } from '@angular/common';
+// import { RouterLink } from '@angular/router';
+// import { Observable } from 'rxjs';
+// import { AuthService, User } from '../services/auth.service';
+// import { CartService } from '../services/cart.service';
+
+// @Component({
+//   selector: 'app-header',
+//   standalone: true,
+//   imports: [CommonModule, RouterLink],
+//   templateUrl: './header.html',
+//   styleUrls: ['./header.css'],
+// })
+// export class HeaderComponent {
+//   currentUser$: Observable<User | null>;
+//   cartItemCount$: Observable<number>;
+
+//   constructor(
+//     private authService: AuthService,
+//     private cartService: CartService
+//   ) {
+//     this.currentUser$ = this.authService.currentUser;
+//     this.cartItemCount$ = this.cartService.cartItemCount$;
+//   }
+
+//   logout(): void {
+//     this.authService.logout();
+//   }
+// }
+
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { Observable } from 'rxjs';
+
 import { AuthService, User } from '../services/auth.service';
-import { Subscription } from 'rxjs';
+import { CartService } from '../services/cart.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink],
   templateUrl: './header.html',
-  styleUrls: ['./header.css'],
+  styleUrls: ['./header.css']
 })
-export class Header implements OnInit, OnDestroy {
-  isLoggedIn = false;
-  user: User | null = null;
-  private userSubscription!: Subscription;
+export class HeaderComponent {
+  currentUser$: Observable<User | null>;
+  cartItemCount$: Observable<number>;
 
-  constructor(private authService: AuthService, private router: Router) {}
-//თუ ავტორიზებულია
-  ngOnInit(): void {
-    this.userSubscription = this.authService.currentUser.subscribe(user => {
-      this.user = user;
-      
-      this.isLoggedIn = !!user; 
-    });
+  constructor(
+    private authService: AuthService,
+    private cartService: CartService, 
+    private router: Router
+  ) {
+    this.currentUser$ = this.authService.user$;
+    this.cartItemCount$ = this.cartService.cartItemCount$;
   }
 
-  ngOnDestroy(): void {
-    
-    if (this.userSubscription) {
-      this.userSubscription.unsubscribe();
-    }
-  }
-
-  logout(): void {
+  logout() {
     this.authService.logout();
-    this.router.navigate(['/sign-in']);
   }
 }

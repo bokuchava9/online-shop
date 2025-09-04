@@ -1,24 +1,26 @@
-<div class="header">
-  <div class="logo">
-    <a routerLink="/"  routerLinkActive="active"><img src="assets/digital-store-logo-electronics-products-logo-e-commerce-logo_372882-55.avif" alt="Shop Logo"></a></div>
-  <div class="nav">
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
-    <a routerLink="/cart" routerLinkActive="active">Cart</a>
-
+<header class="main-header">
+  <nav class="nav-container">
+    <a routerLink="/" class="logo">OnlineShop</a>
     
-    <ng-container *ngIf="!isLoggedIn">
-      <a routerLink="/register" routerLinkActive="active">Register</a>
-      <a routerLink="/sign-in" routerLinkActive="active">Sign In</a>
-    </ng-container>
+    <div class="nav-links">
+      <ng-container *ngIf="(currentUser$ | async) as user; else guestView">
+        
+        <a routerLink="/cart" class="cart-link">
+          <i class="fas fa-shopping-cart"></i>
+          <span *ngIf="(cartItemCount$ | async) as count" class="cart-badge">{{ count }}</span>
+          კალათა
+        </a>
 
-    <!-- ეს მაშინ გამოცნდება როცა მომხმარებელი ავტორიზებული იქნება პროფილის გვერდზე გადასვლა დასამატებელია-->
-    <ng-container *ngIf="isLoggedIn">
-      
-      <a routerLink="/profile" class="nav-link profile-link">Welcome, {{ user?.firstName }}</a>
-      <a (click)="logout()" class="logout-btn">Sign Out</a>
-    </ng-container>
-  </div>
-</div>
+        <a routerLink="/profile" class="user-greeting nav-link">მოგესალმებით, {{ user.firstName }}!</a>
+        
+        <a (click)="logout()" class="nav-link logout-btn">გასვლა</a>
 
+      </ng-container>
 
-
+      <ng-template #guestView>
+        <a routerLink="/sign-in" class="nav-link">შესვლა</a>
+        <a routerLink="/sign-up" class="nav-link btn-primary">რეგისტრაცია</a>
+      </ng-template>
+    </div>
+  </nav>
+</header>

@@ -1,4 +1,4 @@
-
+<!-- 
 
 <div class="login-container">
   <div class="login-card">
@@ -19,6 +19,61 @@
         <div *ngIf="loginForm.get('phoneNumber')?.touched && loginForm.get('phoneNumber')?.invalid" class="invalid-feedback">
           <div *ngIf="loginForm.get('phoneNumber')?.errors?.['required']">
             ტელეფონის ნომერი სავალდებულოა.
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">პაროლი</label>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          class="form-control"
+          placeholder="შეიყვანეთ პაროლი"
+          [ngClass]="{ 'is-invalid': loginForm.get('password')?.touched && loginForm.get('password')?.invalid }"
+        />
+        <div *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid" class="invalid-feedback">
+          <div *ngIf="loginForm.get('password')?.errors?.['required']">
+            პაროლი სავალდებულოა.
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login" [disabled]="loading">
+        {{ loading ? 'შესვლა...' : 'შესვლა' }}
+      </button>
+    </form>
+
+    <div class="register-link">
+      <p>არ გაქვთ ანგარიში? <a routerLink="/register">რეგისტრაცია</a></p>
+    </div>
+  </div>
+</div> -->
+
+
+<div class="login-container">
+  <div class="login-card">
+    <h2>ავტორიზაცია</h2>
+    <p>შეიყვანეთ თქვენი მონაცემები</p>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="email">ელ. ფოსტა</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          class="form-control"
+          placeholder="შეიყვანეთ ელ. ფოსტა"
+          [ngClass]="{ 'is-invalid': loginForm.get('email')?.touched && loginForm.get('email')?.invalid }"
+        />
+        <div *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.invalid" class="invalid-feedback">
+          <div *ngIf="loginForm.get('email')?.errors?.['required']">
+            ელ. ფოსტა სავალდებულოა.
+          </div>
+          <div *ngIf="loginForm.get('email')?.errors?.['email']">
+            გთხოვთ, შეიყვანოთ ვალიდური ელ. ფოსტა.
           </div>
         </div>
       </div>

@@ -1,26 +1,16 @@
-<div *ngIf="categories.length === 0">
-  იტვირთება კატეგორიები...
-</div>
-
 <div class="filters-panel">
-  <!-- ფილტრები ნგმოდელით ეკრაზე გამოდის ინფუთში შეტანილი ცვლილებები -->
   <input type="text" placeholder="Search products..." [(ngModel)]="searchText" (input)="filterProducts()">
 
-  
   <select [(ngModel)]="selectedCategory" (change)="filterProducts()">
     <option value="">All Categories</option>
-    <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
-  </select>
+    <option *ngFor="let c of categories" [value]="c.title">{{ c.title | titlecase }}</option>
+      </select>
 
-  <select [(ngModel)]="selectedBrand" (change)="filterProducts()">
-    <option value="">All Brands</option>
-    <option *ngFor="let brand of brands" [value]="brand">{{ brand | titlecase }}</option>
-  </select>
   <input type="number" placeholder="Min Price" [(ngModel)]="minPrice" (input)="filterProducts()">
   <input type="number" placeholder="Max Price" [(ngModel)]="maxPrice" (input)="filterProducts()">
 
   <button (click)="clearFilters()">Clear Filters</button>
-</div>
+    </div>
 
 <div class="products-container">
   <h1>Products</h1>
@@ -32,33 +22,37 @@
   </div>
 
   <div class="products-grid">
-    <div *ngFor="let product of filteredProducts" class="product-card">
-      <div class="product-image" (click)="goToDetails(product.id)">
-        <img [src]="product.thumbnail || product.images[0]" [alt]="product.title" />
+    <div *ngFor="let product of filteredProducts" class="product-card" (click)="goToDetails(product._id)">
+      <div class="product-image">
+        <img [src]="product.thumbnail || (product.images && product.images[0])" [alt]="product.title" />
         <span *ngIf="product.price.discountPercentage > 0" class="discount">
-          -{{ product.price.discountPercentage }}%
+          -{{ product.price.discountPercentage | number:'1.0-0' }}%
         </span>
       </div>
 
       <div class="product-info">
-        <h3 class="product-title" (click)="goToDetails(product.id)">{{ product.title }}</h3>
+        <h3 class="product-title">{{ product.title }}</h3>
+        
         <div class="price-info">
-          <span class="current-price">{{ getDiscountedPrice(product.price) }}</span>
+          <span class="current-price">{{ product.price.current | currency:'GEL' }}</span>
           <span *ngIf="product.price.discountPercentage > 0" class="original-price">
-            {{ getOriginalPrice(product.price) }}
+            {{ product.price.beforeDiscount | currency:'GEL' }}
           </span>
-        </div>
-        <div class="product-details">
+  </div>
+
+        <div class="stock-rating">
           <div class="stock" [class.out-of-stock]="product.stock <= 0">
             {{ product.stock > 0 ? "In Stock" : "Out of Stock" }}
           </div>
           <div class="rating" *ngIf="product.rating > 0">
-            ⭐ {{ product.rating.toFixed(1) }}
-          </div>
-         
-            <button (click)="addToCart(product, $event)" class="add-to-cart-btn">
-        <i class="fas fa-cart-plus"></i> დამატება
-      </button>
+            <i class="fas fa-star"></i> {{ product.rating.toFixed(1) }}
+    </div>
+  </div>
+
+        <div class="product-actions">
+          <button (click)="addToCart(product, $event)" class="add-to-cart-btn">
+            <i class="fas fa-cart-plus"></i> დამატება
+          </button>
         </div>
       </div>
     </div>

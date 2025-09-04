@@ -1,13 +1,34 @@
+// import { TestBed } from '@angular/core/testing';
+
+// import { Cart } from './cart.service';
+
+// describe('Cart', () => {
+//   let service: Cart;
+
+//   beforeEach(() => {
+//     TestBed.configureTestingModule({});
+//     service = TestBed.inject(Cart);
+//   });
+
+//   it('should be created', () => {
+//     expect(service).toBeTruthy();
+//   });
+// });
+
+
 import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { CartService } from './cart.service';
 
-import { Cart } from './cart.service';
-
-describe('Cart', () => {
-  let service: Cart;
+describe('CartService', () => {
+  let service: CartService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(Cart);
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [CartService],
+    });
+    service = TestBed.inject(CartService);
   });
 
   it('should be created', () => {

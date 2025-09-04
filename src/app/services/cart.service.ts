@@ -1,129 +1,71 @@
-// import { Injectable } from '@angular/core';
-// import { HttpClient } from '@angular/common/http';
-// import { BehaviorSubject, tap, switchMap, of } from 'rxjs';
-// import { AuthService } from './auth.service'; // <--- დავამატოთ AuthService
-
-// @Injectable({ providedIn: 'root' })
-// export class CartService {
-//   private cartApiUrl = 'https://api.everrest.educata.dev/shop/cart';
-//   private cartItems$ = new BehaviorSubject<any[]>([]);
-//   cart$ = this.cartItems$.asObservable();
-
-//   constructor(private http: HttpClient, private authService: AuthService) {
-//     // დავაკვირდეთ მომხმარებლის ცვლილებას და ჩავტვირთოთ კალათა
-//     this.authService.currentUser.pipe(
-//       switchMap(user => {
-//         if (user) {
-//           // თუ მომხმარებელი ავტორიზებულია, ჩატვირთე კალათა
-//           return this.http.get<any[]>(this.cartApiUrl);
-//         } else {
-//           // თუ არა, დააბრუნე ცარიელი მასივი
-//           return of([]);
-//         }
-//       })
-//     ).subscribe(items => {
-//       this.cartItems$.next(items);
-//     });
-//   }
-
-//   private refreshCart() {
-//     // მხოლოდ იმ შემთხვევაში განაახლე, თუ მომხმარებელი ავტორიზებულია
-//     if (this.authService.currentUserValue) {
-//       this.http.get<any[]>(this.cartApiUrl).subscribe(items => {
-//         this.cartItems$.next(items);
-//       });
-//     }
-//   }
-
-//   addToCart(productId: string, quantity: number = 1) {
-//     const body = { id: productId, quantity };
-//     return this.http.post(`${this.cartApiUrl}/product`, body)
-//       .pipe(tap(() => this.refreshCart()));
-//   }
-
-//   removeFromCart(productId: string) {
-//     const body = { ids: [productId] }; // API-ს დოკუმენტაციის მიხედვით, ელოდება მასივს
-//     return this.http.request('delete', `${this.cartApiUrl}/product`, { body })
-//       .pipe(tap(() => this.refreshCart()));
-//   }
-
-//   updateQuantity(productId: string, quantity: number) {
-//     const body = { id: productId, quantity };
-//     // რაოდენობის განახლება ხდება PATCH მეთოდით
-//     return this.http.patch(`${this.cartApiUrl}/product`, body)
-//       .pipe(tap(() => this.refreshCart()));
-//   }
-// }
-
 
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { map, tap, catchError } from 'rxjs/operators';
 
-export interface CartItem {
-  product: any; 
-  quantity: number;
-}
+import { Product, Cart, CartItem } from './user';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class CartService {
-  private cartItems$ = new BehaviorSubject<CartItem[]>([]);
-  cart$ = this.cartItems$.asObservable();
+  private apiUrl = 'https://api.everrest.educata.dev/shop/cart';
 
-  constructor() {
-    const savedCart = localStorage.getItem('localCart');
-    if (savedCart) {
-      this.cartItems$.next(JSON.parse(savedCart));
-    }
+  private cartSubject = new BehaviorSubject<Cart | null>(null);
+  public cart$ = this.cartSubject.asObservable();
+
+  public cartItemCount$: Observable<number> = this.cart$.pipe(
+    map(cart => {
+      if (!cart || !cart.products) return 0;
+      return cart.products.reduce((sum, item) => sum + item.quantity, 0);
+    })
+  );
+
+  constructor(private http: HttpClient) {}
+
+  getCart(): Observable<Cart | null> {
+    return this.http.get<Cart>(this.apiUrl).pipe(
+      tap(cart => this.cartSubject.next(cart)),
+      catchError(() => {
+        this.cartSubject.next(null);
+        return of(null);
+      })
+    );
   }
 
-  private saveCart(items: CartItem[]) {
-    this.cartItems$.next(items);
-    localStorage.setItem('localCart', JSON.stringify(items));
+  addProduct(productId: string, quantity: number): Observable<Cart> {
+    const url = `${this.apiUrl}/product`;
+    const body = { id: productId, quantity };
+    return this.http.patch<Cart>(url, body).pipe(
+      tap(cart => this.cartSubject.next(cart))
+    );
   }
 
-  // პროდუქტის დამატება
-  addToCart(product: any) {
-    const currentItems = this.cartItems$.value;
-    const existingItem = currentItems.find(item => item.product._id === product._id);
-
-    if (existingItem) {
-      // tu ukve kalatshia 
-      existingItem.quantity += 1;
-    } else {
-      // tu axalia
-      currentItems.push({ product: product, quantity: 1 });
-    }
-    this.saveCart(currentItems);
+  updateProductQuantity(productId: string, quantity: number): Observable<Cart> {
+    const url = `${this.apiUrl}/product`;
+        const body = { id: productId, quantity };
+    return this.http.patch<Cart>(url, body).pipe(
+      tap(cart => this.cartSubject.next(cart))
+    );
   }
 
-  // რაოდენობის გაზრდა
-  increaseQuantity(productId: string) {
-    const currentItems = this.cartItems$.value;
-    const item = currentItems.find(i => i.product._id === productId);
-    if (item) {
-      item.quantity++;
-      this.saveCart(currentItems);
-    }
+  removeProduct(productId: string): Observable<Cart> {
+    const url = `${this.apiUrl}/product/${productId}`;
+    return this.http.delete<Cart>(url).pipe(
+      tap(cart => this.cartSubject.next(cart))
+    );
   }
 
-  // რაოდენობის შემცირება
-  decreaseQuantity(productId: string) {
-    let currentItems = this.cartItems$.value;
-    const item = currentItems.find(i => i.product._id === productId);
-    if (item && item.quantity > 1) {
-      item.quantity--;
-    } else {
-      currentItems = currentItems.filter(i => i.product._id !== productId);
-    }
-    this.saveCart(currentItems);
+  clearCart(): Observable<any> {
+    const url = `${this.apiUrl}`;
+    return this.http.delete(url).pipe(
+      tap(() => {
+        this.cartSubject.next(null); 
+      })
+    );
   }
-
-  removeFromCart(productId: string) {
-    const updatedItems = this.cartItems$.value.filter(item => item.product._id !== productId);
-    this.saveCart(updatedItems);
-  }
-
-  clearCart() {
-    this.saveCart([]);
+  public clearLocalCartState(): void {
+    this.cartSubject.next(null);
   }
 }

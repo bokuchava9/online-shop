@@ -1,66 +1,110 @@
 .register-container {
-  max-width: 400px;
-  margin: 40px auto;
-  padding: 20px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 90vh;
+  background-color: #f4f7f6;
+  padding: 2rem;
 }
 
-h2 {
+.register-card {
+  background: #fff;
+  padding: 2.5rem;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px;
+}
+
+.register-card h2 {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.register-card p {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #666;
+}
+
+.form-row {
+  display: flex;
+  gap: 1.5rem;
+  width: 100%;
 }
 
 .form-group {
-  margin-bottom: 15px;
-}
-
-input {
+  margin-bottom: 1.5rem;
   width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
 }
 
-.validation-error {
-  color: red;
-  font-size: 0.85em;
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #555;
 }
 
-.success-message {
-  color: green;
-  text-align: center;
-  margin-bottom: 15px;
+.form-control {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
 }
 
-.error-message {
-  color: red;
-  text-align: center;
-  margin-bottom: 15px;
+.form-control:focus {
+  outline: none;
+  border-color: #007bff;
 }
 
-.buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+/* --- ეს არის მთავარი ნაწილი --- */
+.form-control.is-invalid {
+  border-color: #dc3545; /* წითელი ჩარჩო შეცდომისას */
 }
 
-button {
-  padding: 10px;
-  background: #007bff;
-  color: #fff;
+.invalid-feedback {
+  color: #dc3545; /* წითელი ტექსტი შეცდომისას */
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+/* ----------------------------- */
+
+.btn-register {
+  width: 100%;
+  padding: 15px;
   border: none;
   border-radius: 5px;
+  background-color: #007bff;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-button[disabled] {
-  background: #aaa;
+.btn-register:hover {
+  background-color: #0056b3;
+}
+
+.btn-register:disabled {
+  background-color: #a0c7e4;
   cursor: not-allowed;
 }
 
-a {
+.login-link {
   text-align: center;
+  margin-top: 1.5rem;
+}
+
+.login-link a {
   color: #007bff;
   text-decoration: none;
+  font-weight: 600;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
 }

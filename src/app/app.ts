@@ -1,12 +1,15 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { HomeComponent } from './app/home/home';
-import { Header } from './header/header';
+// HomeComponent-ის იმპორტი აქ აღარ არის საჭირო
+// import { HomeComponent } from './app/home/home'; 
+import { HeaderComponent } from './header/header';
 import { FooterComponent } from './footer/footer';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, HomeComponent,Header,FooterComponent],
+  standalone: true, // <-- დაამატეთ ეს ხაზი
+  // HomeComponent-ს ვშლით იმპორტებიდან
+  imports: [RouterOutlet, HeaderComponent, FooterComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
